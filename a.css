@@ -1,0 +1,10 @@
+.a {
+  color: #ff0000;
+}
+
+@media screen and (max-width: 576px) {
+  :root {
+    --container-padding: 5vw;
+    --logo-extra: 1rem;
+  }
+}
