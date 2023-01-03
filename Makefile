@@ -11,6 +11,7 @@ PIP_PATH:=.direnv/python-$(PYTHON_VERSION)/bin/pip
 WHEEL_PATH:=.direnv/python-$(PYTHON_VERSION)/bin/wheel
 PIP_SYNC_PATH:=.direnv/python-$(PYTHON_VERSION)/bin/pip-sync
 PRE_COMMIT_PATH:=.direnv/python-$(PYTHON_VERSION)/bin/pre-commit
+MATURIN_PATH:=.direnv/python-$(PYTHON_VERSION)/bin/maturin
 
 help: ## Display this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -67,6 +68,9 @@ $(PIP_SYNC_PATH): $(PIP_PATH) $(WHEEL_PATH)
 $(PRE_COMMIT_PATH): $(PIP_PATH) $(WHEEL_PATH)
 	@python -m pip install pre-commit
 
+$(MATURIN_PATH): $(PIP_PATH)
+	$(MAKE) install
+
 init: .direnv .git/hooks/pre-commit $(PIP_SYNC_PATH) requirements.dev.txt ## Initalise a enviroment
 
 clean: ## Remove all build files
@@ -79,5 +83,5 @@ install: $(PIP_SYNC_PATH) requirements.txt $(REQS) ## Install development requir
 	@echo "Installing $(filter-out $<,$^)"
 	@python -m piptools sync requirements.txt $(REQS)
 
-build:
-	maturin develop && python
+build: $(MATURIN_PATH)
+	maturin develop

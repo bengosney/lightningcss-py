@@ -1,14 +1,14 @@
-use pyo3::{prelude::*, pyclass::boolean_struct::False, wrap_pymodule};
-use std::path::Path;
-use lightningcss::{
-  bundler::{Bundler, FileProvider}, targets::Browsers,
-};
 use lightningcss::stylesheet::{
     MinifyOptions, ParserOptions, PrinterOptions, PseudoClasses, StyleAttribute, StyleSheet,
 };
-use pyo3::types::PyDict;
+use lightningcss::{
+    bundler::{Bundler, FileProvider},
+    targets::Browsers,
+};
 use parcel_sourcemap::SourceMap;
-
+use pyo3::types::PyDict;
+use pyo3::{prelude::*, pyclass::boolean_struct::False, wrap_pymodule};
+use std::path::Path;
 
 #[pyclass]
 struct Config {
@@ -16,14 +16,22 @@ struct Config {
 }
 
 struct BundleResults {
-  css: String,
-  //map: 
+    css: String,
+    //map:
+    //map:
+    //map:
+    //map:
+    //map:
 }
 
 /// Bundle the css
-#[pyfunction(minify=false,source_map=true,project_root="\"/\"")]
-pub fn bundle(filename: String, minify: bool, source_map: bool, project_root: &str) -> PyResult<(String, String)> {
-
+#[pyfunction(minify = false, source_map = true, project_root = "\"/\"")]
+pub fn bundle(
+    filename: String,
+    minify: bool,
+    source_map: bool,
+    project_root: &str,
+) -> PyResult<(String, String)> {
     let targets = Browsers {
         safari: Some((13 << 16) | (2 << 8)),
         ..Browsers::default()
@@ -33,9 +41,9 @@ pub fn bundle(filename: String, minify: bool, source_map: bool, project_root: &s
         let mut sm = SourceMap::new(&project_root);
         sm.add_source(&filename);
         Some(sm)
-      } else {
+    } else {
         None
-      };
+    };
 
     let fs = FileProvider::new();
     let mut bundler = Bundler::new(&fs, None, ParserOptions::default());
@@ -47,7 +55,7 @@ pub fn bundle(filename: String, minify: bool, source_map: bool, project_root: &s
         targets: None,
         analyze_dependencies: None,
         pseudo_classes: None,
-      };
+    };
 
     return match stylesheet.to_css(opts) {
         Ok(res) => Ok((res.code, "bob".to_string())),
@@ -61,7 +69,7 @@ pub fn bundle(filename: String, minify: bool, source_map: bool, project_root: &s
           let _ = source_map.extends(&mut sm);
         }
       }
-  
+
       source_map.to_json(None).ok()
     } else {
       None
