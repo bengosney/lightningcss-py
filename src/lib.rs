@@ -11,16 +11,27 @@ use pyo3::types::PyDict;
 use std::collections::HashMap;
 use std::path::Path;
 
+#[pyfunction]
+pub fn parse_version(version: String) -> u32 {
+    let mut parts = version
+        .split(".")
+        .filter_map(|c| c.parse::<u32>().ok())
+        .collect::<Vec<u32>>();
+    parts.resize(3, 0);
+
+    return (parts[0] << 16) | (parts[1] << 8) | parts[2];
+}
+
 fn targets_to_browsers(targets: &PyDict) -> Option<Browsers> {
     let mut target_struct = Browsers::default();
 
-    let target_map: HashMap<String, Option<u32>> = match targets.extract() {
+    let target_map: HashMap<String, Option<String>> = match targets.extract() {
         Ok(t) => t,
         Err(_) => return Some(target_struct),
     };
 
     for (k, v) in target_map.iter() {
-        let val = Some(v.unwrap_or(0).to_owned() << 16);
+        let val = Some(parse_version(v.to_owned().unwrap_or("".to_string())));
         match k.as_str() {
             "android" => target_struct.android = val,
             "chrome" => target_struct.chrome = val,
@@ -35,6 +46,7 @@ fn targets_to_browsers(targets: &PyDict) -> Option<Browsers> {
         }
     }
 
+    println!("Targets: {:?}", target_struct);
     return Some(target_struct);
 }
 
@@ -102,5 +114,6 @@ pub fn bundle(
 #[pymodule]
 fn lightningcss_py(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(bundle, m)?)?;
+    m.add_function(wrap_pyfunction!(parse_version, m)?)?;
     Ok(())
 }
