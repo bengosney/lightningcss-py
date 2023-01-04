@@ -8,8 +8,11 @@ def compile(src: str, dest: str) -> None:
         ic(other)
         f.write(css)
 
+    return css
+
 
 if __name__ == "__main__":
     src = "style.css"
     dest = "style.min.css"
-    compile(src, dest)
+    css = compile(src, dest)
+    ic(css)

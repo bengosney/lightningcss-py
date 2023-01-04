@@ -6,36 +6,60 @@ use lightningcss::{
     targets::Browsers,
 };
 use parcel_sourcemap::SourceMap;
+use pyo3::prelude::*;
 use pyo3::types::PyDict;
-use pyo3::{prelude::*, pyclass::boolean_struct::False, wrap_pymodule};
+use std::collections::HashMap;
 use std::path::Path;
 
-#[pyclass]
-struct Config {
-    targets: Option<Browsers>,
-}
-
-struct BundleResults {
-    css: String,
-    //map:
-    //map:
-    //map:
-    //map:
-    //map:
-}
-
 /// Bundle the css
-#[pyfunction(minify = false, source_map = true, project_root = "\"/\"")]
+#[pyfunction(
+    minify = false,
+    source_map = true,
+    project_root = "\"/\"",
+    //targets = "None"
+)]
 pub fn bundle(
     filename: String,
+    targets: &PyDict,
+    //targets: Option<&PyDict>,
     minify: bool,
     source_map: bool,
     project_root: &str,
-) -> PyResult<(String, String)> {
-    let targets = Browsers {
-        safari: Some((13 << 16) | (2 << 8)),
-        ..Browsers::default()
-    };
+) -> PyResult<String> {
+    let mut target_struct = Browsers::default();
+    let thing: HashMap<String, Option<u32>> = targets.extract()?;
+    for (k, v) in thing.iter() {
+        match k.as_str() {
+            "android" => {
+                target_struct.android = v.to_owned();
+            }
+            "chrome" => {
+                target_struct.chrome = v.to_owned();
+            }
+            "edge" => {
+                target_struct.edge = v.to_owned();
+            }
+            "firefox" => {
+                target_struct.firefox = v.to_owned();
+            }
+            "ie" => {
+                target_struct.ie = v.to_owned();
+            }
+            "ios_saf" => {
+                target_struct.ios_saf = v.to_owned();
+            }
+            "opera" => {
+                target_struct.opera = v.to_owned();
+            }
+            "safari" => {
+                target_struct.safari = v.to_owned();
+            }
+            "samsung" => {
+                target_struct.samsung = v.to_owned();
+            }
+            _ => {}
+        }
+    }
 
     let mut source_map_obj = if source_map {
         let mut sm = SourceMap::new(&project_root);
@@ -52,13 +76,13 @@ pub fn bundle(
     let opts = PrinterOptions {
         minify: minify,
         source_map: source_map_obj.as_mut(),
-        targets: None,
+        targets: Some(target_struct),
         analyze_dependencies: None,
         pseudo_classes: None,
     };
 
     return match stylesheet.to_css(opts) {
-        Ok(res) => Ok((res.code, "bob".to_string())),
+        Ok(res) => Ok(res.code),
         Err(_) => todo!(),
     };
 
