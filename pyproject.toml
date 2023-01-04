@@ -1,12 +1,34 @@
-[build-system]
-requires = ["maturin>=0.14,<0.15"]
-build-backend = "maturin"
-
 [project]
 name = "lightningcss-py"
+version = "0.0.1"
 requires-python = ">=3.7"
 classifiers = [
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
+dependencies = [
+    "maturin",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "icecream",
+    "mypy",
+    "pip-tools",
+    "pre-commit",
+    "validate-pyproject[all]",
+]
+
+[build-system]
+requires = ["maturin>=0.14,<0.15"]
+build-backend = "maturin"
+
+[tool.black]
+line-length = 128
+target-version = ['py311']
+
+[tool.pycln]
+all = true
