@@ -20,34 +20,17 @@ fn targets_to_browsers(targets: &PyDict) -> Option<Browsers> {
     };
 
     for (k, v) in target_map.iter() {
+        let val = Some(v.to_owned());
         match k.as_str() {
-            "android" => {
-                target_struct.android = v.to_owned();
-            }
-            "chrome" => {
-                target_struct.chrome = v.to_owned();
-            }
-            "edge" => {
-                target_struct.edge = v.to_owned();
-            }
-            "firefox" => {
-                target_struct.firefox = v.to_owned();
-            }
-            "ie" => {
-                target_struct.ie = v.to_owned();
-            }
-            "ios_saf" => {
-                target_struct.ios_saf = v.to_owned();
-            }
-            "opera" => {
-                target_struct.opera = v.to_owned();
-            }
-            "safari" => {
-                target_struct.safari = v.to_owned();
-            }
-            "samsung" => {
-                target_struct.samsung = v.to_owned();
-            }
+            "android" => target_struct.android = val,
+            "chrome" => target_struct.chrome = val,
+            "edge" => target_struct.edge = val,
+            "firefox" => target_struct.firefox = val,
+            "ie" => target_struct.ie = val,
+            "ios_saf" => target_struct.ios_saf = val,
+            "opera" => target_struct.opera = val,
+            "safari" => target_struct.safari = val,
+            "samsung" => target_struct.samsung = val,
             _ => {}
         }
     }
