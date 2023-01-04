@@ -74,12 +74,13 @@ pub fn bundle(
         None => None,
     };
 
-    let mut source_map_obj = if source_map {
-        let mut sm = SourceMap::new(&project_root);
-        sm.add_source(&filename);
-        Some(sm)
-    } else {
-        None
+    let mut source_map_obj = match source_map {
+        true => {
+            let mut sm = SourceMap::new(&project_root);
+            sm.add_source(&filename);
+            Some(sm)
+        }
+        false => None,
     };
 
     let fs = FileProvider::new();
