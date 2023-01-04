@@ -11,24 +11,15 @@ use pyo3::types::PyDict;
 use std::collections::HashMap;
 use std::path::Path;
 
-/// Bundle the css
-#[pyfunction(
-    minify = false,
-    source_map = true,
-    project_root = "\"/\"",
-    //targets = "None"
-)]
-pub fn bundle(
-    filename: String,
-    targets: &PyDict,
-    //targets: Option<&PyDict>,
-    minify: bool,
-    source_map: bool,
-    project_root: &str,
-) -> PyResult<String> {
+fn targets_to_browsers(targets: &PyDict) -> Option<Browsers> {
     let mut target_struct = Browsers::default();
-    let thing: HashMap<String, Option<u32>> = targets.extract()?;
-    for (k, v) in thing.iter() {
+
+    let target_map: HashMap<String, Option<u32>> = match targets.extract() {
+        Ok(t) => t,
+        Err(_) => return Some(target_struct),
+    };
+
+    for (k, v) in target_map.iter() {
         match k.as_str() {
             "android" => {
                 target_struct.android = v.to_owned();
@@ -61,6 +52,28 @@ pub fn bundle(
         }
     }
 
+    return Some(target_struct);
+}
+
+/// Bundle the css
+#[pyfunction(
+    minify = false,
+    source_map = true,
+    project_root = "\"/\"",
+    targets = "None"
+)]
+pub fn bundle(
+    filename: String,
+    targets: Option<&PyDict>,
+    minify: bool,
+    source_map: bool,
+    project_root: &str,
+) -> PyResult<String> {
+    let target_struct = match targets {
+        Some(t) => targets_to_browsers(t),
+        None => None,
+    };
+
     let mut source_map_obj = if source_map {
         let mut sm = SourceMap::new(&project_root);
         sm.add_source(&filename);
@@ -76,7 +89,7 @@ pub fn bundle(
     let opts = PrinterOptions {
         minify: minify,
         source_map: source_map_obj.as_mut(),
-        targets: Some(target_struct),
+        targets: target_struct,
         analyze_dependencies: None,
         pseudo_classes: None,
     };
