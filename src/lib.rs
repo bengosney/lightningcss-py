@@ -20,7 +20,7 @@ fn targets_to_browsers(targets: &PyDict) -> Option<Browsers> {
     };
 
     for (k, v) in target_map.iter() {
-        let val = Some(v.to_owned());
+        let val = Some(v.unwrap_or(0).to_owned() << 16);
         match k.as_str() {
             "android" => target_struct.android = val,
             "chrome" => target_struct.chrome = val,
