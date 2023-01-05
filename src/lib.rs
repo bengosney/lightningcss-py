@@ -1,6 +1,5 @@
-use lightningcss::stylesheet::{
-    MinifyOptions, ParserOptions, PrinterOptions, PseudoClasses, StyleAttribute, StyleSheet,
-};
+use lightningcss::stylesheet::{ParserOptions, PrinterOptions};
+// MinifyOptions, StyleAttribute, StyleSheet, PseudoClasses
 use lightningcss::{
     bundler::{Bundler, FileProvider},
     targets::Browsers,
@@ -11,8 +10,7 @@ use pyo3::types::PyDict;
 use std::collections::HashMap;
 use std::path::Path;
 
-#[pyfunction]
-pub fn parse_version(version: String) -> u32 {
+fn parse_version(version: &String) -> u32 {
     let mut parts = version
         .split(".")
         .filter_map(|c| c.parse::<u32>().ok())
@@ -22,16 +20,21 @@ pub fn parse_version(version: String) -> u32 {
     return (parts[0] << 16) | (parts[1] << 8) | parts[2];
 }
 
+#[pyfunction]
+pub fn browser_version(version: String) -> u32 {
+    return parse_version(&version);
+}
+
 fn targets_to_browsers(targets: &PyDict) -> Option<Browsers> {
     let mut target_struct = Browsers::default();
 
-    let target_map: HashMap<String, Option<String>> = match targets.extract() {
+    let target_map: HashMap<String, String> = match targets.extract() {
         Ok(t) => t,
         Err(_) => return Some(target_struct),
     };
 
     for (k, v) in target_map.iter() {
-        let val = Some(parse_version(v.to_owned().unwrap_or("".to_string())));
+        let val = Some(parse_version(v));
         match k.as_str() {
             "android" => target_struct.android = val,
             "chrome" => target_struct.chrome = val,
@@ -46,7 +49,6 @@ fn targets_to_browsers(targets: &PyDict) -> Option<Browsers> {
         }
     }
 
-    println!("Targets: {:?}", target_struct);
     return Some(target_struct);
 }
 
@@ -94,26 +96,12 @@ pub fn bundle(
         Ok(res) => Ok(res.code),
         Err(_) => todo!(),
     };
-
-    /*
-    let map = if let Some(mut source_map) = source_map {
-      if let Some(input_source_map) = &config.input_source_map {
-        if let Ok(mut sm) = SourceMap::from_json("/", input_source_map) {
-          let _ = source_map.extends(&mut sm);
-        }
-      }
-
-      source_map.to_json(None).ok()
-    } else {
-      None
-    };
-    // */
 }
 
 /// A Python module implemented in Rust.
 #[pymodule]
 fn lightningcss_py(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(bundle, m)?)?;
-    m.add_function(wrap_pyfunction!(parse_version, m)?)?;
+    m.add_function(wrap_pyfunction!(browser_version, m)?)?;
     Ok(())
 }
