@@ -10,6 +10,9 @@ use pyo3::types::PyDict;
 use std::collections::HashMap;
 use std::path::Path;
 
+use log::{debug, info, trace};
+use pyo3_log::{Caching, Logger};
+
 fn _unparse_version(int: u32) -> String {
     return format!(
         "{}.{}.{}",
@@ -81,6 +84,8 @@ pub fn bundle(
         None => None,
     };
 
+    info!("Hello World!");
+
     let mut source_map_obj = match source_map {
         true => {
             let mut sm = SourceMap::new(&project_root);
@@ -111,6 +116,7 @@ pub fn bundle(
 /// A Python module implemented in Rust.
 #[pymodule]
 fn lightningcss_py(_py: Python, m: &PyModule) -> PyResult<()> {
+    pyo3_log::init();
     m.add_function(wrap_pyfunction!(bundle, m)?)?;
     m.add_function(wrap_pyfunction!(browser_version, m)?)?;
     Ok(())

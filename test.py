@@ -1,7 +1,14 @@
+import logging
 from contextlib import contextmanager
 from time import perf_counter
 
 import lightningcss_py as lcss
+
+FORMAT = "%(levelname)s %(name)s %(asctime)-15s %(filename)s:%(lineno)d %(message)s"  # noqa
+
+logging.basicConfig(format=FORMAT)
+logging.getLogger().setLevel(logging.INFO)
+logging.info("Test 1")
 
 
 @contextmanager
