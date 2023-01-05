@@ -10,6 +10,16 @@ use pyo3::types::PyDict;
 use std::collections::HashMap;
 use std::path::Path;
 
+fn _unparse_version(int: u32) -> String {
+    return format!(
+        "{}.{}.{}",
+        (int & 0x00FF0000) >> 16,
+        (int & 0x0000FF00) >> 8,
+        int & 0x000000FF
+    )
+    .to_string();
+}
+
 fn parse_version(version: &String) -> u32 {
     let mut parts = version
         .split(".")
