@@ -10,8 +10,8 @@ use pyo3::types::PyDict;
 use std::collections::HashMap;
 use std::path::Path;
 
-use log::{debug, info, trace};
-use pyo3_log::{Caching, Logger};
+use log::info;
+use pyo3_log;
 
 fn _unparse_version(int: u32) -> String {
     return format!(
@@ -68,7 +68,7 @@ fn targets_to_browsers(targets: &PyDict) -> Option<Browsers> {
 /// Bundle the css
 #[pyfunction(
     minify = false,
-    source_map = true,
+    source_map = false,
     project_root = "\"/\"",
     targets = "None"
 )]
@@ -83,8 +83,6 @@ pub fn bundle(
         Some(t) => targets_to_browsers(t),
         None => None,
     };
-
-    info!("Hello World!");
 
     let mut source_map_obj = match source_map {
         true => {
@@ -107,10 +105,22 @@ pub fn bundle(
         pseudo_classes: None,
     };
 
-    return match stylesheet.to_css(opts) {
-        Ok(res) => Ok(res.code),
+    let res = match stylesheet.to_css(opts) {
+        Ok(res) => res,
         Err(_) => todo!(),
     };
+
+    match source_map_obj.clone() {
+        Some(sm) => {
+            info!("source maps");
+            for i in sm.get_sources() {
+                info!("source: {}", i);
+            }
+        }
+        None => {}
+    }
+
+    return Ok(res.code);
 }
 
 /// A Python module implemented in Rust.

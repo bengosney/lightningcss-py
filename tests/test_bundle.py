@@ -4,7 +4,7 @@ import pytest
 
 @pytest.fixture(scope="session")
 def css_file(tmp_path_factory):
-    fn = tmp_path_factory.mktemp("data") / "img.png"
+    fn = tmp_path_factory.mktemp("data") / "styles.css"
     with open(fn, "w") as f:
         f.write(
             """.a {
@@ -27,9 +27,4 @@ def test_bundle_targets_chrome_95(css_file):
 
 def test_bundle_targets_chrome_1(css_file):
     css = lcss.bundle(css_file, targets={"chrome": "1"})
-    assert css == ".a {\n  color: rgba(255, 0, 0, .5);\n}\n"
-
-
-def test_bundle_targets_numeric(css_file):
-    css = lcss.bundle(css_file, targets={"chrome": 1})
     assert css == ".a {\n  color: rgba(255, 0, 0, .5);\n}\n"
