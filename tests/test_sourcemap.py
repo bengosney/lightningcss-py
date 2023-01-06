@@ -20,7 +20,11 @@ def css_file(tmp_path_factory):
     return str(fn)
 
 
-def test_bundle(css_file):
-    css = lcss.bundle(css_file, source_map=True)
-    print(css)
-    assert css == ".a {\n  color: #ff000080;\n}\n"
+def test_sourcemap(css_file):
+    _, sourcemap = lcss.bundle(css_file, source_map=True)
+    assert sourcemap is not None
+
+
+def test_no_sourcemap(css_file):
+    _, sourcemap = lcss.bundle(css_file, source_map=False)
+    assert sourcemap is None

@@ -78,18 +78,14 @@ pub fn bundle(
     minify: bool,
     source_map: bool,
     project_root: &str,
-) -> PyResult<String> {
+) -> PyResult<(String, Option<String>)> {
     let target_struct = match targets {
         Some(t) => targets_to_browsers(t),
         None => None,
     };
 
     let mut source_map_obj = match source_map {
-        true => {
-            let mut sm = SourceMap::new(&project_root);
-            sm.add_source(&filename);
-            Some(sm)
-        }
+        true => Some(SourceMap::new(&project_root)),
         false => None,
     };
 
@@ -110,17 +106,12 @@ pub fn bundle(
         Err(_) => todo!(),
     };
 
-    match source_map_obj.clone() {
-        Some(sm) => {
-            info!("source maps");
-            for i in sm.get_sources() {
-                info!("source: {}", i);
-            }
-        }
-        None => {}
-    }
+    let source_map_output: Option<String> = match source_map_obj {
+        Some(s) => s.to_owned().to_json(Some(project_root)).ok(),
+        None => None,
+    };
 
-    return Ok(res.code);
+    return Ok((res.code, source_map_output));
 }
 
 /// A Python module implemented in Rust.
