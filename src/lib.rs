@@ -90,7 +90,7 @@ pub fn bundle(
     };
 
     let fs = FileProvider::new();
-    let mut bundler = Bundler::new(&fs, None, ParserOptions::default());
+    let mut bundler = Bundler::new(&fs, source_map_obj.as_mut(), ParserOptions::default());
     let stylesheet = bundler.bundle(Path::new(&filename)).unwrap();
 
     let opts = PrinterOptions {
