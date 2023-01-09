@@ -10,7 +10,7 @@ use pyo3::types::PyDict;
 use std::collections::HashMap;
 use std::path::Path;
 
-use log::info;
+use pyo3::exceptions::PyValueError;
 use pyo3_log;
 
 fn _unparse_version(int: u32) -> String {
@@ -70,7 +70,8 @@ fn targets_to_browsers(targets: &PyDict) -> Option<Browsers> {
     minify = false,
     source_map = false,
     project_root = "\"/\"",
-    targets = "None"
+    targets = "None",
+    nesting = true
 )]
 pub fn bundle(
     filename: String,
@@ -78,6 +79,7 @@ pub fn bundle(
     minify: bool,
     source_map: bool,
     project_root: &str,
+    nesting: bool,
 ) -> PyResult<(String, Option<String>)> {
     let target_struct = match targets {
         Some(t) => targets_to_browsers(t),
@@ -90,8 +92,17 @@ pub fn bundle(
     };
 
     let fs = FileProvider::new();
-    let mut bundler = Bundler::new(&fs, source_map_obj.as_mut(), ParserOptions::default());
-    let stylesheet = bundler.bundle(Path::new(&filename)).unwrap();
+
+    let parser_options = ParserOptions {
+        nesting: nesting,
+        ..ParserOptions::default()
+    };
+
+    let mut bundler = Bundler::new(&fs, source_map_obj.as_mut(), parser_options);
+    let stylesheet = match bundler.bundle(Path::new(&filename)) {
+        Ok(s) => s,
+        Err(e) => return Err(PyValueError::new_err(format!("{}", e))),
+    };
 
     let opts = PrinterOptions {
         minify: minify,
@@ -103,7 +114,7 @@ pub fn bundle(
 
     let res = match stylesheet.to_css(opts) {
         Ok(res) => res,
-        Err(_) => todo!(),
+        Err(e) => return Err(PyValueError::new_err(format!("{}", e))),
     };
 
     let source_map_output: Option<String> = match source_map_obj {
