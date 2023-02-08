@@ -14,14 +14,23 @@ use pyo3_log;
 #[pyclass(name = "Browsers")]
 #[derive(Clone)]
 pub struct BrowsersPy {
+    #[pyo3(get, set)]
     android: Option<String>,
+    #[pyo3(get, set)]
     chrome: Option<String>,
+    #[pyo3(get, set)]
     edge: Option<String>,
+    #[pyo3(get, set)]
     firefox: Option<String>,
+    #[pyo3(get, set)]
     ie: Option<String>,
+    #[pyo3(get, set)]
     ios_saf: Option<String>,
+    #[pyo3(get, set)]
     opera: Option<String>,
+    #[pyo3(get, set)]
     safari: Option<String>,
+    #[pyo3(get, set)]
     samsung: Option<String>,
 }
 
