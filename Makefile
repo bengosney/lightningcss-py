@@ -85,3 +85,12 @@ install: $(PIP_SYNC_PATH) requirements.txt $(REQS) ## Install development requir
 
 build: $(MATURIN_PATH)
 	maturin develop
+
+test: $(PIP_SYNC_PATH) requirements.txt $(REQS) build
+	cargo test
+	pytest
+
+watch:
+	@while inotifywait -qr -e close_write src/; do \
+		cargo test; \
+	done

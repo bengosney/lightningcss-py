@@ -13,6 +13,82 @@ use std::path::Path;
 use pyo3::exceptions::PyValueError;
 use pyo3_log;
 
+#[allow(dead_code)]
+#[pyclass(name = "Browsers")]
+struct BrowsersPy {
+    android: Option<u32>,
+    chrome: Option<u32>,
+    edge: Option<u32>,
+    firefox: Option<u32>,
+    ie: Option<u32>,
+    ios_saf: Option<u32>,
+    opera: Option<u32>,
+    safari: Option<u32>,
+    samsung: Option<u32>,
+}
+
+#[pymethods]
+impl BrowsersPy {
+    #[new]
+    fn init(
+        android: Option<u32>,
+        chrome: Option<u32>,
+        edge: Option<u32>,
+        firefox: Option<u32>,
+        ie: Option<u32>,
+        ios_saf: Option<u32>,
+        opera: Option<u32>,
+        safari: Option<u32>,
+        samsung: Option<u32>,
+    ) -> Self {
+        return BrowsersPy {
+            android,
+            chrome,
+            edge,
+            firefox,
+            ie,
+            ios_saf,
+            opera,
+            safari,
+            samsung,
+        };
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "Browsers({:?}, {:?}, {:?}, {:?}, {:?}, {:?}, {:?}, {:?}, {:?})",
+            self.android,
+            self.chrome,
+            self.edge,
+            self.firefox,
+            self.ie,
+            self.ios_saf,
+            self.opera,
+            self.safari,
+            self.samsung
+        )
+    }
+    fn __str__(&self) -> String {
+        self.__repr__()
+    }
+}
+
+impl From<BrowsersPy> for Browsers {
+    fn from(value: BrowsersPy) -> Self {
+        Browsers {
+            android: value.android,
+            chrome: value.chrome,
+            edge: value.edge,
+            firefox: value.firefox,
+            ie: value.ie,
+            ios_saf: value.ios_saf,
+            opera: value.opera,
+            safari: value.safari,
+            samsung: value.samsung,
+        }
+    }
+}
+
 fn _unparse_version(int: u32) -> String {
     return format!(
         "{}.{}.{}",
@@ -131,5 +207,40 @@ fn lightningcss_py(_py: Python, m: &PyModule) -> PyResult<()> {
     pyo3_log::init();
     m.add_function(wrap_pyfunction!(bundle, m)?)?;
     m.add_function(wrap_pyfunction!(browser_version, m)?)?;
+    m.add_class::<BrowsersPy>()?;
+
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::parse_version;
+
+    #[test]
+    fn it_works() {
+        let result = 2 + 2;
+        assert_eq!(result, 4);
+    }
+
+    #[test]
+    fn test_version_1() {
+        assert_eq!(parse_version(&"1".to_string()), 65536);
+    }
+
+    #[test]
+    fn test_version_1_0() {
+        assert_eq!(parse_version(&"1.0".to_string()), 65536);
+    }
+
+    #[test]
+    fn test_version_1_0_0() {
+        assert_eq!(parse_version(&"1.0.0".to_string()), 65536);
+    }
+
+    /*
+    #[test]
+    fn test_version_number() {
+        assert_eq!(browser_version(1), 65536);
+    }
+    */
 }
