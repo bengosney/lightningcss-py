@@ -1,13 +1,10 @@
 use lightningcss::stylesheet::{ParserOptions, PrinterOptions};
-// MinifyOptions, StyleAttribute, StyleSheet, PseudoClasses
 use lightningcss::{
     bundler::{Bundler, FileProvider},
     targets::Browsers,
 };
 use parcel_sourcemap::SourceMap;
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
-use std::collections::HashMap;
 use std::path::Path;
 
 use pyo3::exceptions::PyValueError;
@@ -15,7 +12,8 @@ use pyo3_log;
 
 #[allow(dead_code)]
 #[pyclass(name = "Browsers")]
-struct BrowsersPy {
+#[derive(Clone)]
+pub struct BrowsersPy {
     android: Option<String>,
     chrome: Option<String>,
     edge: Option<String>,
@@ -121,33 +119,6 @@ pub fn browser_version(version: String) -> u32 {
     return parse_version(&version);
 }
 
-fn targets_to_browsers(targets: &PyDict) -> Option<Browsers> {
-    let mut target_struct = Browsers::default();
-
-    let target_map: HashMap<String, String> = match targets.extract() {
-        Ok(t) => t,
-        Err(_) => return Some(target_struct),
-    };
-
-    for (k, v) in target_map.iter() {
-        let val = Some(parse_version(v));
-        match k.as_str() {
-            "android" => target_struct.android = val,
-            "chrome" => target_struct.chrome = val,
-            "edge" => target_struct.edge = val,
-            "firefox" => target_struct.firefox = val,
-            "ie" => target_struct.ie = val,
-            "ios_saf" => target_struct.ios_saf = val,
-            "opera" => target_struct.opera = val,
-            "safari" => target_struct.safari = val,
-            "samsung" => target_struct.samsung = val,
-            _ => {}
-        }
-    }
-
-    return Some(target_struct);
-}
-
 /// Bundle the css
 #[pyfunction(
     minify = false,
@@ -158,17 +129,12 @@ fn targets_to_browsers(targets: &PyDict) -> Option<Browsers> {
 )]
 pub fn bundle(
     filename: String,
-    targets: Option<&PyDict>,
+    targets: Option<BrowsersPy>,
     minify: bool,
     source_map: bool,
     project_root: &str,
     nesting: bool,
 ) -> PyResult<(String, Option<String>)> {
-    let target_struct = match targets {
-        Some(t) => targets_to_browsers(t),
-        None => None,
-    };
-
     let mut source_map_obj = match source_map {
         true => Some(SourceMap::new(&project_root)),
         false => None,
@@ -190,7 +156,10 @@ pub fn bundle(
     let opts = PrinterOptions {
         minify: minify,
         source_map: source_map_obj.as_mut(),
-        targets: target_struct,
+        targets: match targets {
+            Some(t) => Some(t.into()),
+            None => None,
+        },
         analyze_dependencies: None,
         pseudo_classes: None,
     };
