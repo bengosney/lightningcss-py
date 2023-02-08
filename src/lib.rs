@@ -16,30 +16,30 @@ use pyo3_log;
 #[allow(dead_code)]
 #[pyclass(name = "Browsers")]
 struct BrowsersPy {
-    android: Option<u32>,
-    chrome: Option<u32>,
-    edge: Option<u32>,
-    firefox: Option<u32>,
-    ie: Option<u32>,
-    ios_saf: Option<u32>,
-    opera: Option<u32>,
-    safari: Option<u32>,
-    samsung: Option<u32>,
+    android: Option<String>,
+    chrome: Option<String>,
+    edge: Option<String>,
+    firefox: Option<String>,
+    ie: Option<String>,
+    ios_saf: Option<String>,
+    opera: Option<String>,
+    safari: Option<String>,
+    samsung: Option<String>,
 }
 
 #[pymethods]
 impl BrowsersPy {
     #[new]
     fn init(
-        android: Option<u32>,
-        chrome: Option<u32>,
-        edge: Option<u32>,
-        firefox: Option<u32>,
-        ie: Option<u32>,
-        ios_saf: Option<u32>,
-        opera: Option<u32>,
-        safari: Option<u32>,
-        samsung: Option<u32>,
+        android: Option<String>,
+        chrome: Option<String>,
+        edge: Option<String>,
+        firefox: Option<String>,
+        ie: Option<String>,
+        ios_saf: Option<String>,
+        opera: Option<String>,
+        safari: Option<String>,
+        samsung: Option<String>,
     ) -> Self {
         return BrowsersPy {
             android,
@@ -76,15 +76,15 @@ impl BrowsersPy {
 impl From<BrowsersPy> for Browsers {
     fn from(value: BrowsersPy) -> Self {
         Browsers {
-            android: value.android,
-            chrome: value.chrome,
-            edge: value.edge,
-            firefox: value.firefox,
-            ie: value.ie,
-            ios_saf: value.ios_saf,
-            opera: value.opera,
-            safari: value.safari,
-            samsung: value.samsung,
+            android: optional_parse_version(value.android),
+            chrome: optional_parse_version(value.chrome),
+            edge: optional_parse_version(value.edge),
+            firefox: optional_parse_version(value.firefox),
+            ie: optional_parse_version(value.ie),
+            ios_saf: optional_parse_version(value.ios_saf),
+            opera: optional_parse_version(value.opera),
+            safari: optional_parse_version(value.safari),
+            samsung: optional_parse_version(value.samsung),
         }
     }
 }
@@ -107,6 +107,13 @@ fn parse_version(version: &String) -> u32 {
     parts.resize(3, 0);
 
     return (parts[0] << 16) | (parts[1] << 8) | parts[2];
+}
+
+fn optional_parse_version(version: Option<String>) -> Option<u32> {
+    match version {
+        Some(ver) => Some(parse_version(&ver)),
+        None => None,
+    }
 }
 
 #[pyfunction]
