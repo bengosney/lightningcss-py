@@ -63,16 +63,16 @@ impl BrowsersPy {
 
     fn __repr__(&self) -> String {
         format!(
-            "Browsers({:?}, {:?}, {:?}, {:?}, {:?}, {:?}, {:?}, {:?}, {:?})",
-            self.android,
-            self.chrome,
-            self.edge,
-            self.firefox,
-            self.ie,
-            self.ios_saf,
-            self.opera,
-            self.safari,
-            self.samsung
+            "Browsers(android: {}, chrome: {}, edge: {}, firefox: {}, ie: {}, ios_saf: {}, opera: {}, safari: {}, samsung: {})",
+            self.android.as_deref().unwrap_or("None"),
+            self.chrome.as_deref().unwrap_or("None"),
+            self.edge.as_deref().unwrap_or("None"),
+            self.firefox.as_deref().unwrap_or("None"),
+            self.ie.as_deref().unwrap_or("None"),
+            self.ios_saf.as_deref().unwrap_or("None"),
+            self.opera.as_deref().unwrap_or("None"),
+            self.safari.as_deref().unwrap_or("None"),
+            self.samsung.as_deref().unwrap_or("None")
         )
     }
     fn __str__(&self) -> String {
