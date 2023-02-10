@@ -1,28 +1,32 @@
 from typing import Optional
 
 class Browsers:
-    android: Optional[str | None]
-    chrome: Optional[str | None]
-    edge: Optional[str | None]
-    firefox: Optional[str | None]
-    ie: Optional[str | None]
-    ios_saf: Optional[str | None]
-    opera: Optional[str | None]
-    safari: Optional[str | None]
-    samsung: Optional[str | None]
+    android: Optional[str]
+    chrome: Optional[str]
+    edge: Optional[str]
+    firefox: Optional[str]
+    ie: Optional[str]
+    ios_saf: Optional[str]
+    opera: Optional[str]
+    safari: Optional[str]
+    samsung: Optional[str]
 
     def __init__(
         self,
-        android: Optional[str | None] = None,
-        chrome: Optional[str | None] = None,
-        edge: Optional[str | None] = None,
-        firefox: Optional[str | None] = None,
-        ie: Optional[str | None] = None,
-        ios_saf: Optional[str | None] = None,
-        opera: Optional[str | None] = None,
-        safari: Optional[str | None] = None,
-        samsung: Optional[str | None] = None,
+        android: Optional[str] = None,
+        chrome: Optional[str] = None,
+        edge: Optional[str] = None,
+        firefox: Optional[str] = None,
+        ie: Optional[str] = None,
+        ios_saf: Optional[str] = None,
+        opera: Optional[str] = None,
+        safari: Optional[str] = None,
+        samsung: Optional[str] = None,
     ) -> None: ...
+
+class CompiledCss:
+    css: str
+    source_map: Optional[str]
 
 def browser_version(version: str) -> int: ...
 def bundle(
@@ -32,4 +36,4 @@ def bundle(
     project_root: str = "/",
     targets: Optional[Browsers] = None,
     nesting: bool = True,
-): ...
+) -> CompiledCss: ...

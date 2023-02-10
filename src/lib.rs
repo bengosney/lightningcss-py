@@ -10,6 +10,14 @@ use std::path::Path;
 use pyo3::exceptions::PyValueError;
 use pyo3_log;
 
+#[pyclass(name = "CompiledCss")]
+pub struct CompiledCss {
+    #[pyo3(get)]
+    css: String,
+    #[pyo3(get)]
+    source_map: Option<String>,
+}
+
 #[allow(dead_code)]
 #[pyclass(name = "Browsers")]
 #[derive(Clone)]
@@ -143,7 +151,7 @@ pub fn bundle(
     source_map: bool,
     project_root: &str,
     nesting: bool,
-) -> PyResult<(String, Option<String>)> {
+) -> PyResult<CompiledCss> {
     let mut source_map_obj = match source_map {
         true => Some(SourceMap::new(&project_root)),
         false => None,
@@ -183,7 +191,10 @@ pub fn bundle(
         None => None,
     };
 
-    return Ok((res.code, source_map_output));
+    return Ok(CompiledCss {
+        css: res.code,
+        source_map: source_map_output,
+    });
 }
 
 /// A Python module implemented in Rust.
@@ -193,6 +204,7 @@ fn lightningcss_py(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(bundle, m)?)?;
     m.add_function(wrap_pyfunction!(browser_version, m)?)?;
     m.add_class::<BrowsersPy>()?;
+    m.add_class::<CompiledCss>()?;
 
     Ok(())
 }

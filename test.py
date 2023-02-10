@@ -24,14 +24,18 @@ def timeit(name):
 def compile(src: str, dest: str) -> str:
     with open(dest, "w") as f:
         with timeit("bundle"):
-            css = lcss.bundle(src, minify=True)
-        f.write(css)
+            res = lcss.bundle(
+                src,
+                minify=True,
+            )
 
-    return css
+        f.write(res.css)
+
+    return res.css
 
 
 if __name__ == "__main__":
-    src = "style.css"
-    dest = "style.min.css"
+    src = "css/main.css"
+    dest = "css/main.min.css"
     css = compile(src, dest)
     # print(css)
