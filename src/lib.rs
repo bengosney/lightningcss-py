@@ -1,11 +1,11 @@
-use lightningcss::css_modules;
+use lightningcss::css_modules::{self, Pattern};
 use lightningcss::stylesheet::{ParserOptions, PrinterOptions};
 use lightningcss::{
     bundler::{Bundler, FileProvider},
     targets::Browsers,
 };
 use parcel_sourcemap::SourceMap;
-use pyo3::prelude::*;
+use pyo3::{prelude::*, PyClass};
 use std::path::Path;
 
 use pyo3::exceptions::PyValueError;
@@ -84,6 +84,7 @@ impl BrowsersPy {
             self.samsung.as_deref().unwrap_or("None")
         )
     }
+
     fn __str__(&self) -> String {
         self.__repr__()
     }
@@ -137,11 +138,17 @@ pub fn browser_version(version: String) -> u32 {
     parse_version(&version)
 }
 
-#[pyclass(name = "Browsers")]
-#[derive(Clone)]
+#[derive(Debug, FromPyObject)]
+pub enum CssModulesOption {
+    Bool(bool),
+    Config(CssModulesConfig),
+}
+
+#[pyclass(name = "CssModulesConfig")]
+#[derive(Clone, Debug)]
 pub struct CssModulesConfig {
-    pattern: i128,
-    dashed_idents: i128,
+    pub pattern: String,
+    pub dashed_idents: Option<bool>,
 }
 
 /// Bundle the css
@@ -158,7 +165,7 @@ pub fn bundle(
     targets: Option<BrowsersPy>,
     minify: bool,
     source_map: bool,
-    css_modules: Option<CssModulesConfig>,
+    css_modules: Option<CssModulesOption>,
     project_root: &str,
     nesting: bool,
 ) -> PyResult<CompiledCss> {
@@ -169,14 +176,29 @@ pub fn bundle(
 
     let fs: FileProvider = FileProvider::new();
 
-    let css_modules: css_modules::Config = css_modules::Config {
-        ..css_modules::Config::default()
+    let pattern = "nope";
+    let css_modules_config: Option<css_modules::Config> = match css_modules {
+        Some(c) => match c {
+            CssModulesOption::Bool(true) => Some(css_modules::Config::default()),
+            CssModulesOption::Bool(false) => None,
+            CssModulesOption::Config(c) => Some(css_modules::Config {
+                dashed_idents: c.dashed_idents.unwrap_or_default(),
+                pattern: {
+                    //let pattern = c.pattern.to_owned().as_ref();
+                    match lightningcss::css_modules::Pattern::parse(pattern) {
+                        Ok(p) => p,
+                        Err(_) => css_modules::Pattern::default(),
+                    }
+                },
+            }),
+        },
+        None => None,
     };
 
     let parser_options: ParserOptions = ParserOptions {
         nesting: nesting,
         custom_media: true,
-        css_modules: Some(css_modules::Config::default()),
+        css_modules: css_modules_config,
         ..ParserOptions::default()
     };
 
