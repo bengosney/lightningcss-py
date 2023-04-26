@@ -22,14 +22,20 @@ def timeit(name):
 
 
 def compile(src: str, dest: str) -> str:
-    with open(dest, "w") as f:
-        with timeit("bundle"):
-            res = lcss.bundle(
-                src,
-                minify=True,
-            )
+    with timeit("bundle"):
+        res = lcss.bundle(
+            src,
+            minify=True,
+        )
 
+    print("Saving css...")
+    with open(dest, "w") as f:
         f.write(res.css)
+
+    if res.source_map:
+        print("Saving source map...")
+        with open(f"{dest}.json", "w") as f:
+            f.write(res.source_map)
 
     return res.css
 

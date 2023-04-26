@@ -1,3 +1,4 @@
+use lightningcss::css_modules;
 use lightningcss::stylesheet::{ParserOptions, PrinterOptions};
 use lightningcss::{
     bundler::{Bundler, FileProvider},
@@ -105,13 +106,13 @@ impl From<BrowsersPy> for Browsers {
 }
 
 fn _unparse_version(int: u32) -> String {
-    return format!(
+    format!(
         "{}.{}.{}",
         (int & 0x00FF0000) >> 16,
         (int & 0x0000FF00) >> 8,
         int & 0x000000FF
     )
-    .to_string();
+    .to_string()
 }
 
 fn parse_version(version: &String) -> u32 {
@@ -121,7 +122,7 @@ fn parse_version(version: &String) -> u32 {
         .collect::<Vec<u32>>();
     parts.resize(3, 0);
 
-    return (parts[0] << 16) | (parts[1] << 8) | parts[2];
+    (parts[0] << 16) | (parts[1] << 8) | parts[2]
 }
 
 fn optional_parse_version(version: Option<String>) -> Option<u32> {
@@ -133,13 +134,21 @@ fn optional_parse_version(version: Option<String>) -> Option<u32> {
 
 #[pyfunction]
 pub fn browser_version(version: String) -> u32 {
-    return parse_version(&version);
+    parse_version(&version)
+}
+
+#[pyclass(name = "Browsers")]
+#[derive(Clone)]
+pub struct CssModulesConfig {
+    pattern: i128,
+    dashed_idents: i128,
 }
 
 /// Bundle the css
 #[pyfunction(
     minify = false,
     source_map = false,
+    css_modules = "None",
     project_root = "\"/\"",
     targets = "None",
     nesting = true
@@ -149,28 +158,36 @@ pub fn bundle(
     targets: Option<BrowsersPy>,
     minify: bool,
     source_map: bool,
+    css_modules: Option<CssModulesConfig>,
     project_root: &str,
     nesting: bool,
 ) -> PyResult<CompiledCss> {
-    let mut source_map_obj = match source_map {
+    let mut source_map_obj: Option<SourceMap> = match source_map {
         true => Some(SourceMap::new(&project_root)),
         false => None,
     };
 
-    let fs = FileProvider::new();
+    let fs: FileProvider = FileProvider::new();
 
-    let parser_options = ParserOptions {
+    let css_modules: css_modules::Config = css_modules::Config {
+        ..css_modules::Config::default()
+    };
+
+    let parser_options: ParserOptions = ParserOptions {
         nesting: nesting,
+        custom_media: true,
+        css_modules: Some(css_modules::Config::default()),
         ..ParserOptions::default()
     };
 
     let mut bundler = Bundler::new(&fs, source_map_obj.as_mut(), parser_options);
-    let stylesheet = match bundler.bundle(Path::new(&filename)) {
-        Ok(s) => s,
-        Err(e) => return Err(PyValueError::new_err(format!("{}", e))),
-    };
+    let stylesheet: lightningcss::stylesheet::StyleSheet =
+        match bundler.bundle(Path::new(&filename)) {
+            Ok(s) => s,
+            Err(e) => return Err(PyValueError::new_err(format!("{}", e))),
+        };
 
-    let opts = PrinterOptions {
+    let opts: PrinterOptions = PrinterOptions {
         minify: minify,
         source_map: source_map_obj.as_mut(),
         targets: match targets {
@@ -181,7 +198,7 @@ pub fn bundle(
         pseudo_classes: None,
     };
 
-    let res = match stylesheet.to_css(opts) {
+    let res: lightningcss::stylesheet::ToCssResult = match stylesheet.to_css(opts) {
         Ok(res) => res,
         Err(e) => return Err(PyValueError::new_err(format!("{}", e))),
     };
@@ -191,10 +208,10 @@ pub fn bundle(
         None => None,
     };
 
-    return Ok(CompiledCss {
+    Ok(CompiledCss {
         css: res.code,
         source_map: source_map_output,
-    });
+    })
 }
 
 /// A Python module implemented in Rust.
@@ -215,7 +232,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let result = 2 + 2;
+        let result: i32 = 2 + 2;
         assert_eq!(result, 4);
     }
 
