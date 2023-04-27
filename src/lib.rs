@@ -1,11 +1,11 @@
-use lightningcss::css_modules::{self, Pattern};
+use lightningcss::css_modules;
 use lightningcss::stylesheet::{ParserOptions, PrinterOptions};
 use lightningcss::{
     bundler::{Bundler, FileProvider},
     targets::Browsers,
 };
 use parcel_sourcemap::SourceMap;
-use pyo3::{prelude::*, PyClass};
+use pyo3::prelude::*;
 use std::path::Path;
 
 use pyo3::exceptions::PyValueError;
@@ -144,22 +144,30 @@ pub enum CssModulesOption {
     Config(CssModulesConfig),
 }
 
+impl CssModulesOption {
+    pub fn get_pattern_string(&self) -> Option<String> {
+        match self {
+            CssModulesOption::Bool(_) => None,
+            CssModulesOption::Config(c) => c.pattern,
+        }
+    }
+
+    pub fn get_dashed_idents(&self) -> Option<bool> {
+        match self {
+            CssModulesOption::Bool(_) => None,
+            CssModulesOption::Config(c) => c.dashed_idents,
+        }
+    }
+}
+
 #[pyclass(name = "CssModulesConfig")]
 #[derive(Clone, Debug)]
 pub struct CssModulesConfig {
-    pub pattern: String,
+    pub pattern: Option<String>,
     pub dashed_idents: Option<bool>,
 }
 
 /// Bundle the css
-#[pyfunction(
-    minify = false,
-    source_map = false,
-    css_modules = "None",
-    project_root = "\"/\"",
-    targets = "None",
-    nesting = true
-)]
 pub fn bundle(
     filename: String,
     targets: Option<BrowsersPy>,
@@ -176,29 +184,26 @@ pub fn bundle(
 
     let fs: FileProvider = FileProvider::new();
 
-    let pattern = "nope";
-    let css_modules_config: Option<css_modules::Config> = match css_modules {
-        Some(c) => match c {
-            CssModulesOption::Bool(true) => Some(css_modules::Config::default()),
-            CssModulesOption::Bool(false) => None,
-            CssModulesOption::Config(c) => Some(css_modules::Config {
-                dashed_idents: c.dashed_idents.unwrap_or_default(),
-                pattern: {
-                    //let pattern = c.pattern.to_owned().as_ref();
-                    match lightningcss::css_modules::Pattern::parse(pattern) {
-                        Ok(p) => p,
-                        Err(_) => css_modules::Pattern::default(),
-                    }
-                },
-            }),
-        },
+    let pattern_string = match css_modules {
+        Some(c) => c.get_pattern_string(),
         None => None,
+    };
+
+    let pattern_object = match pattern_string {
+        Some(b) => match lightningcss::css_modules::Pattern::parse(&b) {
+            Ok(p) => p,
+            Err(_) => lightningcss::css_modules::Pattern::default(),
+        },
+        None => lightningcss::css_modules::Pattern::default(),
     };
 
     let parser_options: ParserOptions = ParserOptions {
         nesting: nesting,
         custom_media: true,
-        css_modules: css_modules_config,
+        css_modules: Some(css_modules::Config {
+            pattern: pattern_object,
+            ..css_modules::Config::default()
+        }),
         ..ParserOptions::default()
     };
 
